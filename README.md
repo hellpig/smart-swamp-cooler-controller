@@ -7,9 +7,11 @@ In the western half of the US, the weather is either dry enough or cool enough t
 
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
-Relay(s) in parallel with diodes would be used to control the pump and fan.
-Each relay coil would be controlled by a transistor.
-For the Raspberry Pi, an ADC is necessary if using a potentiometer with a thermistor to measure temperature.
+The code currently runs on any computer, but the idea is that it could be adapted to directly control the electronics an evaporative cooler. Relay(s) in parallel with diodes would be used to control the pump and fan.
+
+On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an ADC is necessary if using a potentiometer with a thermistor to measure temperature.
+
+Here is some "pseudocode" showing how the cooler could be controlled...
 ```
 updateTime = 0.0
 on = False
