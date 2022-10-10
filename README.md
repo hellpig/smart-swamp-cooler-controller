@@ -1,7 +1,15 @@
 # smart-swamp-cooler-controller
 Provides functions for making a smart evaporative-cooler controller by getting the weather forecast from weather.gov then doing various calculations.
 
-This code is very useful to run on any computer if you want to know if you should run your evaporative (swamp) cooler. Various useful information will be printed. First, set the parameters at the top.
+This code is very useful to run on any computer if you want to know if you should run your evaporative (swamp) cooler. Various useful information will be printed...
+ - the output temperature and relative humidity of the cooler
+ - the output temperature and relative humidity of the cooler in an hour or so
+ - whether or not (and why) you should run your cooler
+First, set the parameters at the top.
+
+A couple neat things in the code's decision making...
+ - The decision to run depends on the near-future forecast because, if it will be cooler soon, and it isn't very hot in the home, just wait to run it!
+ - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00) where the output temperature will be especially cool
 
 In the western half of the US, the weather is either dry enough or cool enough to comfortably use an evaporative cooler. Evaporative coolers use far less energy than refrigerated air, especially if there is a smart control system to control them.
 
@@ -11,7 +19,7 @@ The code currently runs on any computer, but the idea is that it could be adapte
 
 On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an ADC is necessary if using a potentiometer with a thermistor to measure temperature.
 
-Here is some "pseudocode" showing how the cooler could be controlled...
+Here is some Python-inspired pseudocode showing how the cooler could be controlled...
 ```
 updateTime = 0.0
 on = False
@@ -40,3 +48,5 @@ while 1:
 
   sleep(60)
 ```
+
+If this algorithm were used to control an actual home's cooler, one might want to have a way to shut windows when the cooler turns off to prevent hot air from coming inside the home. I was then thinking that one-way vents exist, and I had the idea of some kind of rubber flaps to put on the outside of the window opening. Feel free to take this idea and become rich!
