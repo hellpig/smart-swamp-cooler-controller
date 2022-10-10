@@ -5,19 +5,20 @@ This code is very useful to run on any computer if you want to know if you shoul
  - the output temperature and relative humidity of the cooler
  - the output temperature and relative humidity of the cooler in an hour or so
  - whether or not (and why) you should run your cooler
+
 First, set the parameters at the top.
 
 A couple neat things in the code's decision making...
- - The decision to run depends on the near-future forecast because, if it will be cooler soon, and it isn't very hot in the home, just wait to run it!
- - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00) where the output temperature will be especially cool
+ - The decision to run depends on the near-future forecast because, if it will be cooler soon and the home isn't very hot, just wait to run it!
+ - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00) when the output temperature will be especially cool
 
 In the western half of the US, the weather is either dry enough or cool enough to comfortably use an evaporative cooler. Evaporative coolers use far less energy than refrigerated air, especially if there is a smart control system to control them.
 
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
-The code currently runs on any computer, but the idea is that it could be adapted to directly control the electronics an evaporative cooler. Relay(s) in parallel with diodes would be used to control the pump and fan.
+The code currently runs on any computer, but the idea is that it could be adapted to directly control an evaporative cooler. Relay(s) in parallel with diodes would be used to control the pump and fan.
 
-On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an ADC is necessary if using a potentiometer with a thermistor to measure temperature.
+On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an external ADC is necessary if using a potentiometer with a thermistor to measure temperature.
 
 Here is some Python-inspired pseudocode showing how the cooler could be controlled...
 ```
