@@ -25,29 +25,33 @@ Here is some Python-inspired pseudocode showing how the cooler could be controll
 updateTime = 0.0
 on = False
 while 1:
-  if time.time() > (updateTime + 3 * 3600.0) or not internetSuccess:
-     internetSuccess, ... = updateForecast()
-     updateTime = time.time()
+    if time.time() > (updateTime + 3 * 3600.0) or not internetSuccess:
+        internetSuccess, ... = updateForecast()
+        if internetSuccess:
+            updateTime = time.time()
 
-  T_in = getT()  # using a connected thermistor for example
+    if time.time() > (updateTime + 24 * 3600.0):
+        print("  Warning: cannot connect to weather service!")
 
-  (Do calculations from smartSwampCooler.py to
-    get the stop[] array, where each element is a different reason to stop)
+    T_in = getT()  # using a connected thermistor for example
 
-  (Print various results.)
+    (Do calculations from smartSwampCooler.py to
+      get the stop[] array, where each element is a different reason to stop)
 
-  if any(stop):
-    on = False
-    (turn off pump and fan)
-  else:
-    if not on:
-      (turn on pump)
-      sleep(150)
-      (turn on fan)
-      on = True
-      sleep(5*60)   # should run for a while before turning off
+    (Print various results.)
 
-  sleep(60)
+    if any(stop):
+        on = False
+        (turn off pump and fan)
+    else:
+        if not on:
+          (turn on pump)
+          sleep(150)
+          (turn on fan)
+          on = True
+          sleep(5*60)   # should run for a while before turning off
+
+    sleep(60)
 ```
 
 If this algorithm were used to control an actual home's cooler, one might want to have a way to shut windows when the cooler turns off to prevent hot air from coming inside the home. I was then thinking that one-way vents exist, and I had the idea of some kind of rubber flaps to put on the outside of the window opening. Feel free to take this idea and become rich!
