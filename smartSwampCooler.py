@@ -29,6 +29,7 @@ import numpy as np            # for calculating T_out and RH_out (at output vent
 # Format is (hours, minutes) with hours in interval [0,23]
 start = datetime.time(9, 0)
 end = datetime.time(18, 30)
+extraT = 5    # peak hours will be ignored if home temperature is over T_target + extraT
 
 # temperature (°F) in your home from a thermometer far enough from vents and outside walls,
 #   and thermometer should be about 1.5 meters from the ground
@@ -388,6 +389,9 @@ if start < end:
   stop[0]  =  start < now_time < end
 else:
   stop[0]  =  (now_time > start) or (now_time < end)
+
+if T_in > T_target + extraT:  # ignore peak hours if very hot in home
+  stop[0]  =  False
 
 
 if (t1 < t2) and (t1 < now_time < t2):
