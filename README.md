@@ -1,18 +1,21 @@
 # smart-swamp-cooler-controller
-Provides functions for making a smart evaporative-cooler controller by getting the weather forecast from weather.gov then doing various calculations.
+Provides functions for making a smart evaporative-cooler controller by getting the weather forecast from weather.gov then doing various calculations.  
+[https://www.weather.gov/documentation/services-web-api](https://www.weather.gov/documentation/services-web-api)
 
 This code is very useful to run on any computer if you want to know if you should run your evaporative (swamp) cooler. Various useful information will be printed...
  - the output temperature and relative humidity of the cooler
  - the output temperature and relative humidity of the cooler in an hour or so
  - whether or not (and why) you should run your cooler
 
-First, set the parameters at the top.
+First, set the parameters at the top of the code.
 
 A couple neat things in the code's decision making...
  - The decision to run depends on the near-future forecast because, if it will be cooler soon and the home isn't very hot, just wait to run it!
  - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00) when the output temperature will be especially cool
 
 In the western half of the US, the weather is either dry enough or cool enough to comfortably use an evaporative cooler. Evaporative coolers use far less energy than refrigerated air, especially if there is a smart control system to control them.
+
+If you want to use this code outside the US, you'll have to modify a couple things. First, weather.gov will not work, so hopefully you have a local weather API. Second, you'll want to use Celsius instead of Fahrenheit, keeping in mind that the output-temperature table I have is in Fahrenheit.
 
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
