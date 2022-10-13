@@ -20,20 +20,14 @@ import urllib.request, json   # for downloading forecasts
 import numpy as np            # for calculating T_out and RH_out (at output vent)
 
 
+print("\n  Using a thermometer far enough from vents and outside walls")
+print("  that is about 1.5 meters from the ground,")
+T_in = float(input("  Temperature (°F) in your home: "))
+
 
 ########################
 #  set parameters
 ########################
-
-# Peak hours (in your computer's time zone)
-# Format is (hours, minutes) with hours in interval [0,23]
-start = datetime.time(9, 0)
-end = datetime.time(18, 30)
-extraT = 5    # peak hours will be ignored if home temperature is over T_target + extraT
-
-# temperature (°F) in your home from a thermometer far enough from vents and outside walls,
-#   and thermometer should be about 1.5 meters from the ground
-T_in = 80
 
 # set target temperature (°F)
 T_target = 75
@@ -48,18 +42,25 @@ t2 = datetime.time(7, 0)
 RH_max = 90
 
 
+# Peak hours (in your computer's time zone)
+# Format is (hours, minutes) with hours in interval [0,23]
+start = datetime.time(9, 0)
+end = datetime.time(18, 30)
+extraT = 5    # peak hours will be ignored if home temperature is over T_target + extraT
+
+
 # A couple global variables for getSmartValue()
 #
 # multiplier...
 #   if 0, the future forecast does not influence decisions
 #   if much larger than 1, the cooler won't run if T_out will soon be even colder
-multiplier = 3
+multiplier = 2
 min_smartValue = 2   # positive number in F°
 
 
 # A couple global variables for getForecast()
 #
-# For following Abq. location:  https://api.weather.gov/points/35.1173,-106.5582
+# For following location:  https://api.weather.gov/points/35.1173,-106.5582
 # The following says they update twice daily, but I have observed them doing it
 #   every 6 hours, with "forecast" times starting 6 to 7 hours before update
 #     https://www.weather.gov/abq/ouroffice-outreach
@@ -195,7 +196,7 @@ def getForecast():
             data = json.load(url)
     except:
         try:
-            print("  Cannot connect to URL. Will retry in 5 seconds.")
+            print("\n  Cannot connect to URL. Will retry in 5 seconds.")
             time.sleep(5)
             with urllib.request.urlopen( urllib.request.Request(website, headers={'User-Agent': user_agent}) ) as url:
                 data = json.load(url)
@@ -267,7 +268,7 @@ def getForecast():
 
 
 # returns (indexT, indexRH)
-def getCurrent( forecast_startDate, listT_hour, listT_temp, listRH_hour, listRH_hum ):
+def getCurrent( forecast_startDate, listT_hour, listRH_hour ):
 
     # get current time
     now = datetime.datetime.now()
@@ -347,7 +348,7 @@ internetSuccess, forecast_startDate, listT_hour, listT_temp, listRH_hour, listRH
 if internetSuccess:
 
 
-    indexT, indexRH = getCurrent( forecast_startDate, listT_hour, listT_temp, listRH_hour, listRH_hum )
+    indexT, indexRH = getCurrent( forecast_startDate, listT_hour, listRH_hour )
 
     '''
     # get T and RH via interpolation (assuming data is for the moment of start time)
@@ -445,7 +446,7 @@ if any(stop):
     print("  The cooler will not produce cold enough air!")
   if stop[3]:
     print("  The air will be very humid!")
-else:
+  print()
+elif internetSuccess:
   print("  Run your cooler!")
-
-print()
+  print()
