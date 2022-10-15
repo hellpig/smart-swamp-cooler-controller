@@ -151,7 +151,7 @@ def getOutput(T, RH):
     # some floats to start trying to get RH_out
     A = 17.27      # A and B for Tetens equation
     B = 237.3
-    C = 4.58                    # units of g/m^3
+    C = 4.58 * 0.96             # units of g/m^3
     densityAir = 1146.0         # ignoring T dependence (in g/m^3)
     latentHeatWater = 2260.0    # in J/g
     specificHeatAir = 1.0       # approximate (in J/(g K))
