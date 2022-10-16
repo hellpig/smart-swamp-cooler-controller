@@ -38,15 +38,16 @@ T_min = 67
 t1 = datetime.time(5, 0)
 t2 = datetime.time(7, 0)
 
-# set max desired relative humidity (RH) inside home in interval [0, 100]
+# set max desired relative humidity (RH) leaving vent in interval [0, 100]
 RH_max = 90
 
 
 # Peak hours (in your computer's time zone)
 # Format is (hours, minutes) with hours in interval [0,23]
+# Peak hours will be ignored if home temperature is over T_target + extraT
 start = datetime.time(9, 0)
 end = datetime.time(18, 30)
-extraT = 5    # peak hours will be ignored if home temperature is over T_target + extraT
+extraT = 5       # positive number in F°
 
 
 # A couple global variables for getSmartValue()
@@ -146,15 +147,16 @@ def getOutput(T, RH):
     # https://en.wikipedia.org/wiki/Saturation_vapor_density
     # https://en.wikipedia.org/wiki/Tetens_equation
     # http://hyperphysics.phy-astr.gsu.edu/hbase/Kinetic/watvap.html
+    #   where the final link is where the 0.96 below was approximated
 
 
     # some floats to start trying to get RH_out
     A = 17.27      # A and B for Tetens equation
     B = 237.3
-    C = 4.58 * 0.96             # units of g/m^3
-    densityAir = 1146.0         # ignoring T dependence (in g/m^3)
-    latentHeatWater = 2260.0    # in J/g
-    specificHeatAir = 1.0       # approximate (in J/(g K))
+    C = 7.50062 * 0.61078 * 0.96  # units of g/m^3
+    densityAir = 1146.0           # ignoring T and altitude dependence (in g/m^3)
+    latentHeatWater = 2260.0      # in J/g
+    specificHeatAir = 1.0         # approximate (in J/(g K))
 
 
     # calculate some values
@@ -273,15 +275,13 @@ def getCurrent( forecast_startDate, listT_hour, listRH_hour ):
     # get current time
     now = datetime.datetime.now()
     hour = now.hour
-    if forecast_startDate.day < now.day:
-      hour += 24
-    timeCurrent = hour + now.minute / 60
+    hour += (now.date() - forecast_startDate.date()).days * 24
 
 
     # get indices that come just before current time
     indexT = -1
     indexRH = -1
-    maxSkip = 5  # often the forecast skips an hour or two
+    maxSkip = 10  # often the forecast skips an hour or two
     for i in range(maxSkip):
       if hour-i in listT_hour:
          indexT = listT_hour.index(hour-i)
@@ -350,13 +350,6 @@ if internetSuccess:
 
     indexT, indexRH = getCurrent( forecast_startDate, listT_hour, listRH_hour )
 
-    '''
-    # get T and RH via interpolation (assuming data is for the moment of start time)
-    slope = (listT_temp[indexT + 1] - listT_temp[indexT]) / ((listT_hour[indexT + 1] - listT_hour[indexT])%24)
-    T = listT_temp[indexT] + ((timeCurrent - listT_hour[indexT])%24) * slope
-    slope = (listRH_hum[indexRH + 1] - listRH_hum[indexRH]) / ((listRH_hour[indexRH + 1] - listRH_hour[indexRH])%24)
-    RH = listRH_hum[indexRH] + ((timeCurrent - listRH_hour[indexRH])%24) * slope
-    '''
 
     # get T and RH (assuming data is for the entire duration)
     T = listT_temp[indexT]
