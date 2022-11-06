@@ -23,7 +23,7 @@ The code currently runs on any computer, but the idea is that it could be adapte
 
 On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an external ADC is necessary if using a potentiometer with a thermistor to measure temperature.
 
-The relays would be near the swamp cooler, while the thermostat that has the thermistor and that gets the forecast will be across the home. These two circuits could be connected by wires, or they could be two separate circuits.
+The relays would be near the swamp cooler, while the thermostat that has the thermistor and that gets the forecast will be across the home. These two circuits could be connected by DC wires, or they could be two separate circuits connected by some kind of radio signal such as WiFi, but then you would have to power them separately.
 
 Here is some Python-inspired pseudocode showing how the cooler could be controlled...
 ```
