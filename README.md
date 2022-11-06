@@ -15,7 +15,7 @@ A couple neat things in the code's decision making...
 
 In the western half of the US, the weather is either dry enough or cool enough to comfortably use an evaporative cooler. Evaporative coolers use far less energy than refrigerated air, especially if there is a smart control system to control them.
 
-If you want to use this code outside the US, you'll have to modify a couple things. First, weather.gov will not work, so hopefully you have a local weather API. Second, you'll want to use Celsius instead of Fahrenheit, keeping in mind that the output-temperature table I have is in Fahrenheit.
+If you want to use this code outside the US, you'll have to modify a couple things. First, weather.gov will not work, so hopefully you have a local weather API. Second, you'll want to use Celsius instead of Fahrenheit, keeping in mind that the output-temperature table I have is in Fahrenheit. Regardless, you'd probably want to have some backup APIs and have the Celsius option.
 
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
@@ -23,18 +23,24 @@ The code currently runs on any computer, but the idea is that it could be adapte
 
 On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an external ADC is necessary if using a potentiometer with a thermistor to measure temperature.
 
+The relays would be near the swamp cooler, while the thermostat that has the thermistor and that gets the forecast will be across the home. These two circuits could be connected by wires, or they could be two separate circuits.
+
 Here is some Python-inspired pseudocode showing how the cooler could be controlled...
 ```
 updateTime = 0.0
+attemptTime = 0.0
 on = False
 while 1:
-    if time.time() > (updateTime + 3 * 3600.0) or not internetSuccess:
+    if time.time() > (attemptTime + 3 * 3600.0):
         internetSuccess, ... = updateForecast()
+        attemptTime = time.time()
         if internetSuccess:
             updateTime = time.time()
 
+    validForecast = True
     if time.time() > (updateTime + 24 * 3600.0):
-        print("  Warning: cannot connect to weather service!")
+        validForecast = False
+        print("  Warning: Cannot connect to weather service! Running in thermostat-only mode.")
 
     T_in = getT()  # using a connected thermistor for example
 
