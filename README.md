@@ -17,6 +17,8 @@ In the western half of the US, the weather is either dry enough or cool enough t
 
 If you want to use this code outside the US, you'll have to modify a couple things. First, weather.gov will not work, so hopefully you have a local weather API. Second, you'll want to use Celsius instead of Fahrenheit, keeping in mind that the output-temperature table I have is in Fahrenheit. Regardless, you'd probably want to have some backup APIs and have the Celsius option.
 
+The code has various target temperatures throughout the day: default, for a few hours around sunrise, and during peak hours. However, peak hours may be during the hottest part of the day when cool air is especially wanted. For this reason, the user should set the peak-hour period as short as possible, and, assuming that the output temperature at the vent is cold enough, edit the code to be able to set a cooler target temperature for the hour or two before peak hours. Another (expensive) solution would be to have a battery that is used during peak hours and that is charged outside of peak hours.
+
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
 The code currently runs on any computer, but the idea is that it could be adapted to directly control an evaporative cooler. Relay(s) in parallel with diodes would be used to control the pump and fan.
@@ -64,3 +66,7 @@ while 1:
 ```
 
 If this algorithm were used to control an actual home's cooler, one might want to have a way to shut windows when the cooler turns off to prevent hot air from coming inside the home. I was then thinking that one-way vents exist, and I had the idea of some kind of rubber flaps to put on the outside of the window opening. Feel free to take this idea and become rich!
+
+Not shown in the code above, the device will also need to synchronize its clock with time server(s) several times per year. Note that time synchronization is enabled by default on Raspberry Pi OS.
+
+Time changes (such as due to daylight saving time) would cause slight issues between the time change and the next forecast update. Luckily, daylight saving time includes all of swamp-cooler season. If time changes were a problem, a fix would be to make the timezone variable be global and updated whenever the forecast updates, or just convert everything to UTC.
