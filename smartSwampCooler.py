@@ -65,7 +65,8 @@ min_smartValue = 2   # positive number in F°
 # The following says they update twice daily, but I have observed them doing it
 #   every 6 hours, with "forecast" times starting 6 to 7 hours before update
 #     https://www.weather.gov/abq/ouroffice-outreach
-website = "https://api.weather.gov/gridpoints/ABQ/101,119"
+website = "https://api.weather.gov/gridpoints/EPZ/91,78"    #NMSU
+#website = "https://api.weather.gov/gridpoints/ABQ/101,119"  #Albuquerque
 user_agent = "Smart Swamp-Cooler Controller"
 
 
@@ -76,7 +77,7 @@ user_agent = "Smart Swamp-Cooler Controller"
 # I think this only works in the US? So long is negative.
 def getURL(lat, long):
     site = "https://api.weather.gov/points/" + str(lat) + "," + str(long)
-    with urllib.request.urlopen( urllib.request.Request(site , headers={'User-Agent': user_agent}) ) as url:
+    with urllib.request.urlopen( urllib.request.Request(site , headers={'User-Agent': user_agent}), timeout=5 ) as url:
         website = json.load(url)["properties"]["forecastGridData"]
     return website
 
@@ -147,7 +148,7 @@ def getOutput(T, RH):
     # https://en.wikipedia.org/wiki/Saturation_vapor_density
     # https://en.wikipedia.org/wiki/Tetens_equation
     # http://hyperphysics.phy-astr.gsu.edu/hbase/Kinetic/watvap.html
-    #   where the final link is where the 0.96 below was approximated
+    #   where the final link is how the 0.96 below was approximated
 
 
     # some floats to start trying to get RH_out
@@ -194,13 +195,13 @@ def getOutput(T, RH):
 def getForecast():
 
     try:
-        with urllib.request.urlopen( urllib.request.Request(website, headers={'User-Agent': user_agent}) ) as url:
+        with urllib.request.urlopen( urllib.request.Request(website, headers={'User-Agent': user_agent}), timeout=5 ) as url:
             data = json.load(url)
     except:
         try:
             print("\n  Cannot connect to URL. Will retry in 5 seconds.")
             time.sleep(5)
-            with urllib.request.urlopen( urllib.request.Request(website, headers={'User-Agent': user_agent}) ) as url:
+            with urllib.request.urlopen( urllib.request.Request(website, headers={'User-Agent': user_agent}), timeout=5 ) as url:
                 data = json.load(url)
             print("  Successfully connected.")
         except:
@@ -229,17 +230,21 @@ def getForecast():
     listT_temp = [0.0] * len(listT)
     for i,a in enumerate(listT):
       listT_hour[i] = (int(a['validTime'][11:13]) + timezone) % 24  # in local timezone
-      listT_temp[i] = a['value'] * 1.8 + 32                       # now in Fahrenheit
+      listT_temp[i] = a['value'] * 1.8 + 32                         # now in Fahrenheit
 
     listRH_hour = [0] * len(listRH)
     listRH_hum  = [0.0] * len(listRH)
     for i,a in enumerate(listRH):
       listRH_hour[i] = (int(a['validTime'][11:13]) + timezone) % 24  # in local timezone
-      listRH_hum[i]  = a['value']                                 # in interval [0,100]
+      listRH_hum[i]  = float(a['value'])                             # in interval [0,100]
 
 
     # To not have to do "mod 24" all the time, let's fix the hour lists.
-    # Note that I had already done "mod 24" a bunch before I added the following code...
+    # Note that I had already done "mod 24" a bunch before I added the following code.
+    #
+    # For api.weather.gov, you wouldn't have to do the following if you instead built
+    #   the hour lists via something like...
+    #      listT_hour[i] = listT_hour[i-1] + int(a['validTime'][-2])
 
     prev = listT_hour[0]
     mult = 0
