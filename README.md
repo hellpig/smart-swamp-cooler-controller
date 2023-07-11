@@ -70,3 +70,12 @@ If this algorithm were used to control an actual home's cooler, one might want t
 Not shown in the code above, the device will also need to synchronize its clock with time server(s) several times per year. Note that time synchronization is enabled by default on Raspberry Pi OS.
 
 Time changes (such as due to daylight saving time) would cause slight issues between the time change and the next forecast update. Luckily, daylight saving time includes all of swamp-cooler season. If time changes were a problem, a fix would be to make the timezone variable be global and updated whenever the forecast updates, or just convert everything to UTC.
+
+
+# a simpler solution that anyone can do
+
+Most days in any week, I run my cooler about the same times each day. So, what I would really want is just a programmable thermostat that runs certain hours. This would still need a way to automatically close windows (though, if the average outdoor temperature overnight will be a bit cooler than the house temperature will be, I sometimes want windows open overnight).
+
+I almost always shut my cooler down before going to bed because the house is usually cool enough, and overnight just wastes a lot of electricity, and it doesn't make air as cool as one might expect due to the higher relative humidty at night. A simple room fan is all that is needed overnight.
+
+I also shut it down before it gets too hot during the day. My goal is to seal in coldness before it gets too hot outside for the cooler to cool the air, which only works well if you start up the cooler early enough. Also, the indoor air will be made to have a very high absolute humidty if the cooler is run during hottest parts of the day. I suppose locking in the coldness only works if you have good insulation in your home such as double-paned windows and (ideally light colored) blinds or curtains, which you should certainly invest in.
