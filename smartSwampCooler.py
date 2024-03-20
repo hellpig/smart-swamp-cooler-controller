@@ -148,13 +148,14 @@ def getOutput(T, RH):
     # https://en.wikipedia.org/wiki/Saturation_vapor_density
     # https://en.wikipedia.org/wiki/Tetens_equation
     # http://hyperphysics.phy-astr.gsu.edu/hbase/Kinetic/watvap.html
-    #   where the final link is how the 0.96 below was approximated
 
 
     # some floats to start trying to get RH_out
-    A = 17.27      # A and B for Tetens equation
+    A = 17.27      # A, B, and C for Tetens equation
     B = 237.3
-    C = 7.50062 * 0.61078 * 0.96  # units of g/m^3
+    C = 610.78     # in Pa
+    molarMass = 18.01528          # for water (in g/mol)
+    gasConstant = 8.3145          # in m^3 Pa / (K mol)
     densityAir = 1146.0           # ignoring T and altitude dependence (in g/m^3)
     latentHeatWater = 2260.0      # in J/g
     specificHeatAir = 1.0         # approximate (in J/(g K))
@@ -164,8 +165,12 @@ def getOutput(T, RH):
     T1c = (T - 32) / 1.8   # converting to Celcius
     T2c = (T_out - 32) / 1.8
     deltaT = T1c - T2c
-    SVD1 = C * np.exp( A*T1c / (T1c+B) )   # saturated vapor density
-    SVD2 = C * np.exp( A*T2c / (T2c+B) )
+    SVP1 = C * np.exp( A*T1c / (T1c+B) )   # saturation vapor pressure
+    SVP2 = C * np.exp( A*T2c / (T2c+B) )
+
+    # saturation vapor densities approximated from ideal gas law
+    SVD1 = molarMass * SVP1 / (gasConstant * (273.15 + T1c))
+    SVD2 = molarMass * SVP2 / (gasConstant * (273.15 + T2c))
 
 
     # calculate RH_out
@@ -419,7 +424,7 @@ if internetSuccess:
     #print(T_soon, RH_soon)
 
     if T < 70:
-      print("\n  Warning, T < 70, so extrapolation cannot be trusted.")
+      print("\n  Warning, outside T < 70, so extrapolation cannot be trusted.")
       print("    Maybe just open some windows?")
 
     print("\n  Computer's 24-hour time:", now_time.strftime('%H:%M'))
