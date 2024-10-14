@@ -50,13 +50,20 @@ end = datetime.time(18, 30)
 extraT = 5       # positive number in F°
 
 
-# A couple global variables for getSmartValue()
+# A couple global variables for getSmartValue(). Do not run the cooler if
+#   T_out + smartValue >= T_in
+# The output air should be many degrees colder than the inside air in order
+#   for effective cooling.
+# If the output air will be hotter soon, be more willing to run the cooler now.
+# If the output air will be cooler soon, be less willing to run the cooler now.
+# If the output air will not change soon, use base_smartValue
 #
 # multiplier...
 #   if 0, the future forecast does not influence decisions
 #   if much larger than 1, the cooler won't run if T_out will soon be even colder
 multiplier = 2
 min_smartValue = 2   # positive number in F°
+base_smartValue = 5  # positive number in F°
 
 
 # A couple global variables for getForecast()
@@ -337,7 +344,7 @@ def getSmartValue(indexT, indexRH, listT_hour, listT_temp, listRH_hour, listRH_h
     T_out_soon, RH_out_soon  =  getOutput(T_soon, RH_soon)
 
 
-    smartValue = min_smartValue + multiplier * (T_out - T_out_soon) / timeStep
+    smartValue = base_smartValue + multiplier * (T_out - T_out_soon) / timeStep
     if smartValue < min_smartValue:
         smartValue = min_smartValue
 
