@@ -1,10 +1,12 @@
-# Before you think about this code, consider a simpler solution that anyone can do
+# Before you think about this code, consider a simpler solution that anyone can easily do manually
 
-Most days in any week, I run my cooler about the same times each day. So, what I would really want is just a programmable controller that runs certain hours. This would still need a way to automatically close windows (though, if the average outdoor temperature overnight will be a bit cooler than the house temperature will be, I sometimes want windows open overnight) or need something like Up-Dux (Google it). There are also coolers with highly changeable speeds that could just be slowed down a lot instead of being turned off, which would prevent the need to close windows (unless it is windy outside and hot air is coming in). Without an electronic solution, *we* can be the manual controller for the cooler and windows!
+Most days in any week, I run my evaporative cooler about the same times each day: in the morning and again in the evening. So, what I would really want is just a programmable controller that runs certain hours. This would still need a way to automatically close windows (though, if the average outdoor temperature overnight will be a bit cooler than the house temperature will be, I sometimes want windows open overnight) or need something like Up-Dux (Google it). There are also coolers with highly changeable speeds that could just be slowed down a lot instead of being turned off, which would lessen the need to close windows (unless it is windy outside and hot air is coming in). Without an electronic solution such as a programmable controller with automatically closing windows, *we* can be the manual controller for the cooler and windows!
 
-I almost always shut my cooler down before going to bed because the house is usually cool enough, and overnight just wastes a lot of electricity, and it doesn't make air as cool as one might expect due to the higher relative humidity at night. A simple room fan is all that is needed overnight. If I do leave it on by accident (or if I get home too late to cool down the house before bed), I often shut it off just as I wake up to lock in the especially cool house, which has only a small bad effect on the midday indoor temperature before I turn it on again in the evening. If the weather is too hot and humid when I shut it off when I wake up, I sometimes do a quick (1 hour) cool later in the morning.
+I always try to shut my cooler down before going to bed because the house is usually cool enough, and overnight just wastes a lot of electricity, and it doesn't make air as cool as one might expect due to the higher relative humidity at night. A simple room fan is all that is needed overnight, and, if you turn it on in the morning, you can still get the house nice and cool for the following day. If I leave it on overnight by accident (or if I get home too late to cool down the house before bed), I often shut it off just as I wake up to lock in the especially cool house. Because it gets hotter outside faster than it gets hotter inside, turning it off during the middle of the day has only a small bad effect on the midday indoor temperature before I turn it on again in the evening. If the weather is too hot and humid when I shut it off when I wake up, I sometimes do a quick (1 hour) cool later in the morning.
 
-I also often shut it down before it gets too hot during the day (and always off when we're at work). My goal is to seal in coldness before it gets too hot outside for the cooler to cool the air, which only works well if you start up the cooler early enough. Also, the indoor air will be made to have a very high *absolute* humidity if the cooler is run during hottest parts of the day. I suppose locking in the coldness only works if you have good insulation in your home such as double-paned windows and (ideally light colored) blinds or curtains, which you should certainly invest in.
+I always try to shut the cooler down before it gets too hot during the day (and always off when we're at work). My goal is to seal in coldness before it gets too hot outside for the cooler to cool the air, which only works well if you start up the cooler early enough. If you run it during the middle of the day, the indoor air will be made to have a very high *absolute* humidity, which increases the heat index. I suppose locking in the coldness only works if you have good insulation in your home such as double-paned windows and (ideally light colored) blinds or curtains, which you should certainly invest in.
+
+This strategy of locking in cold temperature only works if we understand that, to cool a house, a swamp cooler has to cool more than the air, so it needs to run for two or three hours first. A thermometer will drop relatively quickly when first turning on the cooler (especially if the thermometer is incorrectly placed *near* the output vent). However, if the cooler is shut off without having been run for long enough, the solid house itself will quickly reheat the air because the solid house is a heat reservoir relative to the air.
 
 
 # smart-swamp-cooler-controller
@@ -20,17 +22,17 @@ First, set the parameters at the top of the code.
 
 A couple neat things in the code's decision making...
  - The decision to run depends on the near-future forecast because, if it will be cooler soon and the home isn't very hot, just wait to run it!
- - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00) when the output temperature will be especially cool
+ - You can also set another lower target temperature for a time period (default is from 5:00 to 7:00 in the morning) when the output temperature will be especially cool
 
 In the western half of the US, the weather is either dry enough or cool enough to comfortably use an evaporative cooler. Evaporative coolers use far less energy than refrigerated air, especially if there is a smart control system to control them.
 
 If you want to use this code outside the US, you'll have to modify a couple things. First, weather.gov will not work, so hopefully you have a local weather API. Second, you'll want to use Celsius instead of Fahrenheit, keeping in mind that the output-temperature table I have is in Fahrenheit. Regardless, you'd probably want to have some backup APIs and have the Celsius option.
 
-The code has various target temperatures throughout the day: default, for a few hours around sunrise, and during peak hours. However, peak hours may be during the hottest part of the day when cool air is especially wanted. For this reason, the user should set the peak-hour period as short as possible, and, assuming that the output temperature at the vent is cold enough, edit the code to be able to set a cooler target temperature for the hour or two before peak hours. Another (expensive) solution would be to have a battery that is used during peak hours and that is charged outside of peak hours.
+The code has various target temperatures throughout the day: default, for a few hours around sunrise (to be set colder), and during peak hours (to be set hotter). Perhaps you can could add another target temperature for the late evening (to be set colder). The user should probably set the peak-hour period as short as possible, and, assuming that the output temperature at the vent is cold enough, edit the code to be able to allow you to set a cooler target temperature for the hour or two before peak hours. Another (expensive) solution would be to have a battery that is used during peak hours and that is charged outside of peak hours.
 
 
 # example algorithm for controlling a swamp cooler via something like a Raspberry Pi
-The code currently runs on any computer, but the idea is that it could be adapted to directly control an evaporative cooler. Relay(s) in parallel with diodes would be used to control the pump and fan.
+The code currently runs on any computer, but the idea is that it could be adapted to directly control an evaporative cooler. Relay(s) controlled in parallel with diodes would be used to control the pump and fan.
 
 On a Raspberry Pi, each relay coil would be controlled by a transistor. For the Raspberry Pi, an external ADC is necessary if using a potentiometer with a thermistor to measure temperature.
 
@@ -38,8 +40,10 @@ The relays would be near the swamp cooler, while the thermostat that has the the
 
 Here is some Python-inspired pseudocode showing how the cooler could be controlled...
 ```
-updateTime = 0.0
+# times for getting weather forecast
+updateTime = 0.0 
 attemptTime = 0.0
+
 on = False
 while 1:
     if time.time() > (attemptTime + 3 * 3600.0):
@@ -66,13 +70,15 @@ while 1:
     else:
         if not on:
           (turn on pump)
-          sleep(150)
+          sleep(5*60)
           (turn on fan)
           on = True
-          sleep(5*60)   # should run for a while before turning off
+          sleep(30*60)   # should run for a while before turning off
 
     sleep(60)
 ```
+
+An issue is that a cooler needs to run for two or three hours before the solid house cools off instead of just the air and thermometer cooling off. There are various solutions to this: (1) the thermometer can be placed in some type of insulation, (2) the minimum run time in the above pseudocode can be increased, or (3) T_in could be calculated as some weighted average of the temperature before being turned on and the current temperature, where the weighting depends on how long the cooler has been running. Regardless of which solution is chosen, it would ideally need to be fine tuned to the specific house. 
 
 If this algorithm were used to control an actual home's cooler, one might want to have a way to shut windows when the cooler turns off to prevent hot air from coming inside the home. I was then thinking that one-way vents exist, and I had the idea of some kind of rubber flaps to put on the outside of the window opening. Feel free to take this idea and become rich! Though, if you Google "up ducts" or "Up-Dux" something like this already exists that exhausts through the ceiling.
 
