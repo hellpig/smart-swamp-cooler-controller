@@ -34,7 +34,7 @@ T_target = 75
 
 # Set minimum temperature and times for running in early morning
 #   in computer's time zone
-T_min = 67
+T_min = 66
 t1 = datetime.time(5, 0)
 t2 = datetime.time(7, 0)
 
@@ -126,6 +126,30 @@ def getOutput(T, RH):
     hum_ind = np.array([i if i>=0 else 1000.0 for i in (RH - hum1_array)]).argmin()
 
 
+
+    # If the base table value or any table value needed for interpolation
+    # is NN, treat the conditions as outside the useful evaporative-cooler range.
+    # This preserves NN as a "do not run" signal without allowing NN to create
+    # absurd interpolation slopes.
+
+    if T2[T_ind, hum_ind] == NN:
+        return (NN, 100)
+
+    if T_ind == len(T1_array) - 1:
+        T_neighbor = T2[T_ind - 1, hum_ind]
+    else:
+        T_neighbor = T2[T_ind + 1, hum_ind]
+
+    if hum_ind == len(hum1_array) - 1:
+        hum_neighbor = T2[T_ind, hum_ind - 1]
+    else:
+        hum_neighbor = T2[T_ind, hum_ind + 1]
+
+    if T_neighbor == NN or hum_neighbor == NN:
+        return (NN, 100)
+
+
+
     # calculate T_out via (first order) interpolation or extrapolation
 
     if T_ind == len(T1_array) - 1:
@@ -204,6 +228,7 @@ def getOutput(T, RH):
 
 # Don't run this too frequently!
 # returns ( internetSuccess, forecast_startDate, lists )
+# Assumes that no numbers are returned as None
 def getForecast():
 
     try:
@@ -252,7 +277,7 @@ def getForecast():
 
 
     # To not have to do "mod 24" all the time, let's fix the hour lists.
-    # Note that I had already done "mod 24" a bunch before I added the following code.
+    # Doing "mod 24" can be dangerous if taking the difference of two hours that are more than a day apart.
     #
     # For api.weather.gov, you wouldn't have to do the following if you instead built
     #   the hour lists via something like...
@@ -304,14 +329,14 @@ def getCurrent( forecast_startDate, listT_hour, listRH_hour ):
          indexT = listT_hour.index(hour-i)
          break
       if i == maxSkip-1:
-         print("yikes!")
+         print("yikes! Could not find current temperature forecast hour")
          exit()
     for i in range(maxSkip):
       if hour-i in listRH_hour:
          indexRH = listRH_hour.index(hour-i)
          break
       if i == maxSkip-1:
-         print("wowsers!")
+         print("wowsers! Could not find current humidity forecast hour")
          exit()
 
     return (indexT, indexRH)
@@ -325,16 +350,24 @@ def getCurrent( forecast_startDate, listT_hour, listRH_hour ):
 ########################
 
 
-# returns (smartValue, timeStep, T_out_soon)
+# returns (smartValue, timeStep, T_out_soon, RH_out_soon, smartValueSuccess)
 def getSmartValue(indexT, indexRH, listT_hour, listT_temp, listRH_hour, listRH_hum, T_out):
+
+    if indexT + 2 >= len(listT_hour) or indexRH + 2 >= len(listRH_hour):
+        return (-1, -1, -1, -1, False)
+
 
     T_soon = listT_temp[indexT + 1]
 
     # from the centers of the adjacent durations
-    timeStep = ((listT_hour[indexT + 2] - listT_hour[indexT])%24) / 2
+    timeStep = ((listT_hour[indexT + 2] - listT_hour[indexT])) / 2
 
     # from the centers of the adjacent durations
-    timeStep_RH = ((listRH_hour[indexRH + 2] - listRH_hour[indexRH])%24) / 2
+    timeStep_RH = ((listRH_hour[indexRH + 2] - listRH_hour[indexRH])) / 2
+
+    if timeStep <= 0 or timeStep_RH <= 0:
+        print("Error: Forecast hours are not increasing correctly!")
+        exit()
 
     # this is an approximation because I'm lazy
     slope = (listRH_hum[indexRH + 1] - listRH_hum[indexRH]) / timeStep_RH
@@ -349,7 +382,7 @@ def getSmartValue(indexT, indexRH, listT_hour, listT_temp, listRH_hour, listRH_h
         smartValue = min_smartValue
 
 
-    return (smartValue, timeStep, T_out_soon, RH_out_soon)
+    return (smartValue, timeStep, T_out_soon, RH_out_soon, True)
 
 
 
@@ -378,7 +411,7 @@ if internetSuccess:
 
 
     # get smartValue
-    smartValue, timeStep, T_out_soon, RH_out_soon  =  getSmartValue(indexT, indexRH, listT_hour, listT_temp, listRH_hour, listRH_hum, T_out)
+    smartValue, timeStep, T_out_soon, RH_out_soon, smartValueSuccess  =  getSmartValue(indexT, indexRH, listT_hour, listT_temp, listRH_hour, listRH_hum, T_out)
 
 
 
@@ -416,9 +449,12 @@ else:
 
 if internetSuccess:
 
-    stop[2]  =  T_out + smartValue >= T_in
+    if smartValueSuccess:
+        stop[2] = T_out + smartValue >= T_in
+    else:
+        stop[2] = T_out + base_smartValue >= T_in
 
-    stop[3]  =  RH_out > RH_max
+    stop[3] = RH_out > RH_max
 
 
 
@@ -431,7 +467,7 @@ if internetSuccess:
     #print(T_soon, RH_soon)
 
     if T < 70:
-      print("\n  Warning, outside T < 70, so extrapolation cannot be trusted.")
+      print("\n  Warning: outside T < 70, so output temp and RH extrapolations are not reliable.")
       print("    Maybe just open some windows?")
 
     print("\n  Computer's 24-hour time:", now_time.strftime('%H:%M'))
@@ -441,10 +477,13 @@ if internetSuccess:
     print("  Output temp:", round(T_out,2))
     print("  Output relative humidity:", round(RH_out,2))
     print("    ΔT =", round(T - T_out, 2), "    (ΔT determines water usage)")
-    print("\n  In", round(timeStep,2), "hour(s), output temp will be:", round(T_out_soon,2))
-    print("    Output relative humidity will be:", round(RH_out_soon,2))
-    print("    smartValue =", round(smartValue,2))
-
+    if smartValueSuccess:
+      print("\n  In", round(timeStep,2), "hour(s), output temp will be:", round(T_out_soon,2))
+      print("    Output relative humidity will be:", round(RH_out_soon,2))
+      print("    smartValue =", round(smartValue,2))
+    else:
+      print("\n  Warning: Not enough future forecast data to calculate smartValue.")
+      print("    Using base_smartValue instead.")
 
 print()
 if any(stop):
@@ -459,4 +498,11 @@ if any(stop):
   print()
 elif internetSuccess:
   print("  Run your cooler!")
+  print()
+else:
+  print("  Forecast unavailable.")
+  if T_in >= T_target:
+    print("  Thermostat-only mode: run your cooler if windows are open and outdoor conditions seem reasonable.")
+  else:
+    print("  Thermostat-only mode: your home is cool enough.")
   print()
