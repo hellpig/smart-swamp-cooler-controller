@@ -180,16 +180,42 @@ def getOutput(T, RH):
     # https://en.wikipedia.org/wiki/Tetens_equation
     # http://hyperphysics.phy-astr.gsu.edu/hbase/Kinetic/watvap.html
 
-
     # some floats to start trying to get RH_out
     A = 17.27      # A, B, and C for Tetens equation
     B = 237.3
     C = 610.78     # in Pa
     molarMass = 18.01528          # for water (in g/mol)
     gasConstant = 8.3145          # in m^3 Pa / (K mol)
-    densityAir = 1146.0           # ignoring T and altitude dependence (in g/m^3)
-    latentHeatWater = 2260.0      # in J/g
-    specificHeatAir = 1.0         # approximate (in J/(g K))
+
+    # For setting densityAir and latentHeatWater and specificHeatAir...
+    #
+    # latentHeatWater should be the latent heat of vaporization near the
+    # temperature where evaporation is happening at the wet pads. For a swamp
+    # cooler this is roughly the wet-pad / wet-bulb / output-air temperature,
+    # not 100°C. Around 85°F (29.4°C), L is about 2431 J/g. Using 2260 J/g
+    # would be the boiling-point value and would overestimate waterAdded.
+    # Note that:   L_v ≈ 2500.8 - 2.36*T_C    in kJ/kg
+    #
+    # densityAir depends mostly on altitude and temperature, and only weakly on
+    # humidity. Dry air at sea level and 85°F is about 1166 g/m^3. At high-desert
+    # elevations around 5000 ft, summer air density is more like 950-1000 g/m^3.
+    # Across realistic swamp-cooler temperatures, density changes by several
+    # percent; across realistic humidities, the change is usually small
+    # compared with altitude/temperature effects.
+    #
+    # Larger densityAir or smaller latentHeatWater makes waterAdded larger, so
+    # RH_out is predicted higher. That is conservative if RH_out is being used
+    # to decide whether the cooler output will feel too humid.
+    #
+    # specificHeatAir is near 1.0 J/(g K) for dry air. Humid air has a slightly
+    # higher heat capacity because water vapor has a higher specific heat, but
+    # even near swamp-cooler output conditions this usually changes cp by only
+    # a few percent. Using 1.0 is fine for this rough model; using 1.02 or 1.03
+    # would make RH_out slightly more conservative.
+
+    densityAir = 1166.0           # dry air at sea level and 85°F, in g/m^3
+    latentHeatWater = 2431.0      # J/g, near 85°F
+    specificHeatAir = 1.0         # approximate, in J/(g K)
 
 
     # calculate some values
